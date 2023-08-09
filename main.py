@@ -25,7 +25,6 @@ while True:
     results = face_mesh.process(rgb_frame)
     landmark_points = results.multi_face_landmarks
 
-
     # Checando se os landmarks de fato existem
     if landmark_points:
         landmarks = landmark_points[0].landmark     # index zero por que a gente só tem uma face
