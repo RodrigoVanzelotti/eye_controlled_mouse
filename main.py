@@ -3,6 +3,11 @@ import mediapipe as mp
 import pyautogui
 
 pyautogui.FAILSAFE = False
+'''
+DESATIVAR O FAIL-SAFE NÃO É RECOMENDADO. Esse recurso é ativado por padrão para que você possa 
+interromper facilmente a execução do seu programa pyautogui movendo manualmente o mouse para o 
+canto superior esquerdo da tela
+'''
 SENSIBILIDADE_DO_MODELO = 3
 
 # Lê a câmera e inicializa a solução

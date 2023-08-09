@@ -1,114 +1,47 @@
-# Eye Controlled Mouse
+# Eye Controlled Mouse using FaceMesh
 
 **Rodrigo Pires Vanzelotti**
 
-This code is a Python program that uses the libraries OpenCV, Mediapipe, and the pyautogui module to control the computer's mouse based on the detected eye movements from a webcam.
+This Python script demonstrates an eye-controlled mouse using the MediaPipe library's FaceMesh model. The program utilizes computer vision to track specific facial landmarks, particularly the position of the eyes, and translates these movements into mouse cursor actions. It employs OpenCV for image processing, MediaPipe for face landmark detection, and PyAutoGUI for controlling the mouse.
 
-Here's a detailed explanation of the code:
+## Functionality
 
-## Imports:
+The script captures video from the webcam, processes each frame, and identifies the landmarks of the face using the FaceMesh model. It then tracks the movement of the eyes and determines whether the user blinks or opens their mouth to perform corresponding actions.
 
-```python
-import cv2
-import mediapipe as mp
-import pyautogui
-```
-**cv2:** OpenCV library used for image and video manipulation.
+### Key Components
 
-**mediapipe as mp:** Mediapipe library, which provides pre-built solutions for computer vision tasks.
+1. **Webcam Capture**: The script accesses the webcam using OpenCV's `cv2.VideoCapture` and retrieves video frames for processing.
 
-**pyautogui:** A library for mouse and keyboard control through code.
+2. **FaceMesh Initialization**: The script initializes the FaceMesh model from the MediaPipe library with the option to refine landmarks. This model is responsible for detecting facial landmarks.
 
-## Webcam initialization and FaceMesh setup:
+3. **Mouse Control**: The main logic of the script involves using facial landmarks to control the mouse cursor. The program identifies the landmarks associated with the user's eyes and calculates cursor movement based on the position of these landmarks.
 
-```python
-cam = cv2.VideoCapture(0)
-face_mesh = mp.solutions.face_mesh.FaceMesh(refine_landmarks=True)
-```
+4. **Blink Detection**: The script detects blinking by monitoring the vertical distance between the upper and lower landmarks of the eye. If this distance is below a certain threshold, a blink is detected.
 
-**cv2.VideoCapture(0):** Initializes the webcam. The value 0 indicates that the first available camera will be used.
+5. **Mouth Open Detection**: The script also checks whether the user's mouth is open. If the distance between specific mouth landmarks exceeds a threshold, the script temporarily disables cursor control.
 
-**mp.solutions.face_mesh.FaceMesh(refine_landmarks=True):** Initializes the FaceMesh face landmark detector with refine_landmarks enabled to improve the accuracy of the detected landmarks.
+6. **Click Action**: Additionally, the script detects when the user's eyes are close enough (vertical distance between eye landmarks below a certain threshold) and simulates a mouse click using `pyautogui.click()`.
 
-## Capturing and processing webcam frames in a loop:
+7. **Screen Resolution**: The script retrieves the screen's dimensions using `pyautogui.size()` to convert normalized landmark coordinates into actual screen positions.
 
-```python
-while True:
-    _, frame = cam.read()
-    frame = cv2.flip(frame, 1)
-    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    output = face_mesh.process(rgb_frame)
-    landmark_points = output.multi_face_landmarks
-    frame_h, frame_w, _ = frame.shape
-```
+## FaceMesh and Real-World Applications
 
-**cam.read():** Reads a frame from the webcam. The first returned value, denoted by _,, is a discard variable as it's not used in the code. The second returned value is stored in the variable frame.
+**MediaPipe's FaceMesh** is a powerful model for facial landmark detection. It identifies 468 facial landmarks, including eyes, nose, mouth, and other facial features. These landmarks provide valuable information about facial expressions, head orientation, and gaze direction.
 
-**cv2.flip(frame, 1):** Flips the frame horizontally, as the face landmark tracking data is calibrated for a specific orientation.
+**Applications in the Real World**:
 
-**cv2.cvtColor(frame, cv2.COLOR_BGR2RGB):** Converts the frame from BGR (the default format in OpenCV) to RGB format, which is expected by Mediapipe.
+1. **Gaze Tracking**: FaceMesh's accurate landmark detection can be used to track a person's gaze direction, enabling applications like gaze-controlled user interfaces, video games, and virtual reality systems.
 
-**face_mesh.process(rgb_frame):** Processes the frame using the FaceMesh face landmark detector, returning an output object that contains information about the detected landmarks.
+2. **Emotion Recognition**: By analyzing changes in facial landmarks, FaceMesh can be used to detect emotions such as smiles, frowns, and raised eyebrows. This has applications in sentiment analysis and user engagement evaluation.
 
-**output.multi_face_landmarks:** Gets the list of detected face landmarks in the frame.
+3. **Accessibility Tools**: Eye-controlled interfaces are especially useful for individuals with motor impairments, allowing them to interact with computers using only their eye movements.
 
-## Detecting and tracking eye landmark points:
+4. **Human-Computer Interaction**: FaceMesh can enhance human-computer interaction by enabling gestures and facial expressions as input methods, providing a more intuitive and natural interaction experience.
 
-```python
-if landmark_points:
-    landmarks = landmark_points[0].landmark
-    for id, landmark in enumerate(landmarks[474:478]):
-        x = int(landmark.x * frame_w)
-        y = int(landmark.y * frame_h)
-        cv2.circle(frame, (x, y), 3, (0, 255, 0))
-        if id == 1:
-            screen_x = screen_w * landmark.x
-            screen_y = screen_h * landmark.y
-            pyautogui.moveTo(screen_x, screen_y)
-```
+5. **Healthcare**: In medical fields, FaceMesh could aid in diagnosing conditions like strabismus (crossed eyes) by analyzing eye movements and alignment.
 
-- Checks if face landmarks have been detected in the frame.
+6. **User Experience Testing**: Companies can use FaceMesh to conduct user experience testing for products, websites, and applications by analyzing users' facial expressions and reactions.
 
-- Accesses specific eye landmarks and iterates over them.
+## Disclaimer
 
-- For each eye landmark, draws a green circle on the frame for visualization.
-
-- Uses the second eye landmark (landmark[475]) to control the mouse movement. The mouse position is updated to align with this landmark relative to the screen size.
-
-## Detecting and tracking the left eye corner landmark points:
-
-```python
-left = [landmarks[145], landmarks[159]]
-for landmark in left:
-    x = int(landmark.x * frame_w)
-    y = int(landmark.y * frame_h)
-    cv2.circle(frame, (x, y), 3, (0, 255, 255))
-```
-
-- Creates a list called left containing the top-left (landmark[145]) and bottom-left (landmark[159]) eye corner landmarks.
-
-- For each left eye corner landmark, draws a yellow circle on the frame for visualization.
-
-## Checking for left eye blink and simulating a mouse click:
-
-```python
-if (left[0].y - left[1].y) < 0.004:
-    pyautogui.click()
-    pyautogui.sleep(1)
-```
-
-- Calculates the vertical difference between the top-left and bottom-left eye corner landmarks.
-
-- If this difference is less than 0.004 (adjustable threshold for sensitivity), it is considered that the eye has closed (blinked).
-
-- In this case, the program simulates a mouse click using the pyautogui.click() function. Then it waits for 1 second before continuing.
-
-## Displaying the frame with the markings in a window:
-
-```python
-cv2.imshow('Eye Controlled Mouse', frame)
-if cv2.waitKey(20) & 0xFF==ord('q'):
-    break
-```
-
-Displays the frame with all the markings in the window titled "Eye Controlled Mouse".
+The script provided in this README demonstrates a basic implementation of an eye-controlled mouse using FaceMesh. It's important to note that the script's performance might vary based on factors such as lighting conditions, webcam quality, and individual facial features. Additionally, disabling the PyAutoGUI fail-safe feature as shown in the script is not recommended, as it's a safety feature designed to prevent unintended mouse cursor movements.
